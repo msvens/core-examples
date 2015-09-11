@@ -47,31 +47,44 @@ import org.mellowtech.core.io.RecordFileBuilder;
  *
  * @author Martin Svensson
  */
-public class Example2 {
+public class IOs {
 
   public static void main(String[] args) throws Exception{
-    System.out.println(Math.ceil(3/(double)2));
     memFile();
-
   }
+
+
+
+
   
   public static void memFile() throws Exception{
+
+    //create
     RecordFileBuilder builder = new RecordFileBuilder();
     builder.blockSize(2048).mem().reserve(0).maxBlocks(1024*1024);
     RecordFile rf = builder.build("/tmp/myfile.rf");
-    
-    byte[] b = new CBString("some string").to().array();
+    System.out.println("free blocks: "+rf.getFreeBlocks());
+
+    //insert
+    byte[] b = new CBString("first string").to().array();
+    byte[] b1 = new CBString("second string").to().array();
     rf.insert(100000, b);
-    rf.insert(512, b);
-    
+    rf.insert(512, b1);
+
+    //get
     b = rf.get(100000);
     CBString str = new CBString().from(b, 0);
     System.out.println(str.get());
-    
+
+    //iterate
+    CBString tmp = new CBString();
     for(Iterator<Record>iter = rf.iterator(); iter.hasNext();){
-      System.out.println("record: "+iter.next().record);
+      Record r = iter.next();
+      System.out.println("record: "+r.record+" "+tmp.from(r.data,0));
     }
+
+    //finally close and delete
     rf.close();
-    //new File("/tmp/myfile.rf").delete();
+    new File("/tmp/myfile.rf").delete();
   }
 }
