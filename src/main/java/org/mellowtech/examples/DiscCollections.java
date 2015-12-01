@@ -4,9 +4,6 @@ import org.mellowtech.core.bytestorable.CBInt;
 import org.mellowtech.core.bytestorable.CBString;
 import org.mellowtech.core.bytestorable.io.StorableInputStream;
 import org.mellowtech.core.collections.*;
-import org.mellowtech.core.collections.hmap.EHTableBuilder;
-import org.mellowtech.core.collections.tree.BTree;
-import org.mellowtech.core.collections.tree.BTreeBuilder;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -19,7 +16,7 @@ public class DiscCollections {
 
   public static void main(String[] args) throws Exception{
     //createIndex();
-    iterateTree();
+    //iterateTree();
   }
 
   public static void createTreeAndHashMaps() throws Exception {
@@ -33,9 +30,15 @@ public class DiscCollections {
   }
 
   public static void createDiscBasedMaps() throws Exception {
-    DiscMap <String, Integer> db = new DiscBasedMap <> (CBString.class, CBInt.class, "/tmp/discbasedmap", false, true);
-    DiscMap <String, String> db1 = new DiscBasedHashMap <> (CBString.class, CBString.class, "tmp/hashbasedmap", true, false);
+    DiscMapBuilder builder = new DiscMapBuilder();
+    builder.blobValues(false).memMappedKeyBlocks(true);
 
+    SortedDiscMap <String, Integer> db = builder.blobValues(false).sorted(String.class, Integer.class, "/tmp/discbasedmap");
+    DiscMap <String, String> db1 = builder.blobValues(true).hashed(String.class, String.class, "tmp/hashbasedmap");
+
+    //or more generically (in which case you would have to cast to SortedDiscMap)
+    db = (SortedDiscMap<String, Integer>) builder.blobValues(false).build(String.class, Integer.class, "/tmp/discbasedmap", true);
+    db1 = builder.blobValues(true).build(String.class, String.class, "tmp/hashbasedmap", false);
   }
 
   public static void createIndex() throws Exception {

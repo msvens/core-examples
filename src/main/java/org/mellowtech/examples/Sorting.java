@@ -22,7 +22,7 @@ public class Sorting {
   public static void main(String[] args) throws Exception{
     //parse();sort();
     //parseAndSort();
-    verify();
+    //verify();
   }
 
   public static void parse() throws Exception{
@@ -48,7 +48,7 @@ public class Sorting {
 
   public static void eSort() throws Exception {
     long l = System.currentTimeMillis();
-    EDiscBasedSort<String,CBString> edb = new EDiscBasedSort <>(new CBString(), "/tmp");
+    EDiscBasedSort<String,CBString> edb = new EDiscBasedSort <>(CBString.class, "/tmp");
     edb.sort("/tmp/english.1024MB.bs", "/tmp/english-sorted.bs", 1024*1024*160);
     System.out.println("esort took: "+ (System.currentTimeMillis() - l) + "ms");
   }
@@ -59,7 +59,7 @@ public class Sorting {
     Scanner s = new Scanner(is);
     s.useDelimiter(p);
     BufferedOutputStream os = new BufferedOutputStream(new FileOutputStream("/tmp/english-sorted-1.bs"),1024*1024);
-    EDiscBasedSort <String, CBString> edb = new EDiscBasedSort <>(new CBString(), "/tmp");
+    EDiscBasedSort <String, CBString> edb = new EDiscBasedSort <>(CBString.class, "/tmp");
     edb.sort(new ScannerInputStream(s,1), os, 1024*1024*160);
     os.close();
   }
