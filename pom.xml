@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.mellowtech.core</groupId>
   <artifactId>examples</artifactId>
-  <version>3.0-SNAPSHOT</version>
+  <version>3.0.4-SNAPSHOT</version>
   <name>core-examples</name>
   <description>examples of mellowtech core functionality</description>
     <properties>
@@ -85,7 +85,7 @@
           <dependency>
             <groupId>org.mellowtech</groupId>
             <artifactId>core</artifactId>
-            <version>3.0.3</version>
+            <version>3.0.4-SNAPSHOT</version>
         </dependency>
   </dependencies>
 </project>
