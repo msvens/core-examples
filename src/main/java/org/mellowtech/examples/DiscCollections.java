@@ -7,6 +7,8 @@ import org.mellowtech.core.collections.*;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Iterator;
 
 /**
@@ -20,9 +22,10 @@ public class DiscCollections {
   }
 
   public static void createTreeAndHashMaps() throws Exception {
+    Path dir = Paths.get("/tmp");
     BTreeBuilder builder = new BTreeBuilder();
     BTree<String, CBString, Integer, CBInt> db;
-    db = builder.indexInMemory(true).valuesInMemory(true).build(CBString.class, CBInt.class, "/tmp/treemap");
+    db = builder.memoryMappedValues(true).build(CBString.class, CBInt.class, dir, "treemap");
 
     EHTableBuilder ehbuilder = new EHTableBuilder();
     BMap<String, CBString, String, CBString> db1;
@@ -31,7 +34,7 @@ public class DiscCollections {
 
   public static void createDiscBasedMaps() throws Exception {
     DiscMapBuilder builder = new DiscMapBuilder();
-    builder.blobValues(false).memMappedKeyBlocks(true);
+    builder.blobValues(false);
 
     SortedDiscMap <String, Integer> db = builder.blobValues(false).sorted(String.class, Integer.class, "/tmp/discbasedmap");
     DiscMap <String, String> db1 = builder.blobValues(true).hashed(String.class, String.class, "tmp/hashbasedmap");
@@ -44,17 +47,19 @@ public class DiscCollections {
   public static void createIndex() throws Exception {
     BTreeBuilder builder = new BTreeBuilder();
     BTree<String, CBString, Integer, CBInt> tree;
-    tree = builder.indexInMemory(true).build(CBString.class, CBInt.class, "/tmp/btree/english");
+    Path dir = Paths.get("/tmp/btree");
+    tree = builder.build(CBString.class, CBInt.class, dir, "english");
     StorableInputStream <String, CBString> sis = new StorableInputStream <>(new FileInputStream("/tmp/english-sorted.bs"), new CBString());
     WordCountIter iter = new WordCountIter(sis);
-    tree.createIndex(iter);
+    tree.createTree(iter);
     tree.close();
   }
 
   public static void iterateTree() throws Exception {
     BTreeBuilder builder = new BTreeBuilder();
     BTree <String, CBString, Integer, CBInt> tree;
-    tree = builder.indexInMemory(true).build(CBString.class, CBInt.class, "/tmp/btree/english");
+    Path dir = Paths.get("/tmp/btree");
+    tree = builder.build(CBString.class, CBInt.class, dir, "english");
     Iterator <KeyValue<CBString,CBInt>> iter = tree.iterator();
     while(iter.hasNext()){
       KeyValue <CBString, CBInt> kv = iter.next();
