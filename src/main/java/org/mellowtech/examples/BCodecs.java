@@ -28,27 +28,50 @@
 package org.mellowtech.examples;
 
 
-import org.mellowtech.core.bytestorable.*;
+import org.mellowtech.core.codec.StringCodec;
+
+import java.nio.ByteBuffer;
+
 
 /**
  * Date: 2013-04-14
- * Time: 12:08
+ * Time: 09:05
  *
  * @author Martin Svensson
  */
-public class Container2 extends CBAuto <Container2> {
+public class BCodecs {
 
-  //@BSField(2) public Integer f1;
-  @BSField(1) public String f2;
+  public static void main(String[] args){
+    compareStrings();
+    compareInSameBuffer();
 
-  public Container2(){
-    super();
   }
 
-  public Container2(Integer field1, String field2){
-    this();
-    //this.f1 = field1;
-    this.f2 = field2;
+  /**
+   * Compare two strings on a byte level. StringCodec encodes in UTF8
+   */
+  public static void compareStrings(){
+    StringCodec codec = new StringCodec();
+	  ByteBuffer str1 = codec.to("a string");
+	  ByteBuffer str2 = codec.to("a string");
+	  System.out.println(codec.byteCompare(0, str1, 0, str2));
+  }
+
+  /**
+   * Compare two strings on a byte level that are stored in the same buffer. StringCodec encodes in UTF8
+   */
+  public static void compareInSameBuffer(){
+    StringCodec codec = new StringCodec();
+    ByteBuffer bb = ByteBuffer.wrap(new byte[codec.byteSize("a string 1")+codec.byteSize("a string")]);
+    codec.to("a string 1", bb);
+    codec.to("a string", bb);
+    System.out.println(codec.byteCompare(0, codec.byteSize("a string 1"), bb));
+
   }
   
+  
+
+
+
+
 }

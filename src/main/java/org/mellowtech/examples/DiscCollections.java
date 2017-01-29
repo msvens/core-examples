@@ -1,8 +1,8 @@
 package org.mellowtech.examples;
 
-import org.mellowtech.core.bytestorable.CBInt;
-import org.mellowtech.core.bytestorable.CBString;
-import org.mellowtech.core.bytestorable.io.StorableInputStream;
+import org.mellowtech.core.codec.IntCodec;
+import org.mellowtech.core.codec.StringCodec;
+import org.mellowtech.core.codec.io.CodecInputStream;
 import org.mellowtech.core.collections.*;
 
 import java.io.FileInputStream;
@@ -22,14 +22,16 @@ public class DiscCollections {
   }
 
   public static void createTreeAndHashMaps() throws Exception {
+    StringCodec strCodec = new StringCodec();
+    IntCodec intCodec = new IntCodec();
     Path dir = Paths.get("/tmp");
     BTreeBuilder builder = new BTreeBuilder();
-    BTree<String, CBString, Integer, CBInt> db;
-    db = builder.memoryMappedValues(true).build(CBString.class, CBInt.class, dir, "treemap");
+    BTree<String, Integer> db;
+    db = builder.memoryMappedValues(true).build(strCodec, intCodec, dir, "treemap");
 
     EHTableBuilder ehbuilder = new EHTableBuilder();
-    BMap<String, CBString, String, CBString> db1;
-    db1 = ehbuilder.inMemory(true).blobValues(true).build(CBString.class, CBString.class,"/tmp/hashmap");
+    BMap<String, String> db1;
+    db1 = ehbuilder.inMemory(true).blobValues(true).build(strCodec, strCodec,"/tmp/hashmap");
   }
 
   public static void createDiscBasedMaps() throws Exception {
@@ -45,11 +47,13 @@ public class DiscCollections {
   }
 
   public static void createIndex() throws Exception {
+    StringCodec strCodec = new StringCodec();
+    IntCodec intCodec = new IntCodec();
     BTreeBuilder builder = new BTreeBuilder();
-    BTree<String, CBString, Integer, CBInt> tree;
+    BTree<String, Integer> tree;
     Path dir = Paths.get("/tmp/btree");
-    tree = builder.build(CBString.class, CBInt.class, dir, "english");
-    StorableInputStream <String, CBString> sis = new StorableInputStream <>(new FileInputStream("/tmp/english-sorted.bs"), new CBString());
+    tree = builder.build(strCodec, intCodec, dir, "english");
+    CodecInputStream<String> sis = new CodecInputStream<>(new FileInputStream("/tmp/english-sorted.bs"), strCodec);
     WordCountIter iter = new WordCountIter(sis);
     tree.createTree(iter);
     tree.close();
@@ -57,24 +61,24 @@ public class DiscCollections {
 
   public static void iterateTree() throws Exception {
     BTreeBuilder builder = new BTreeBuilder();
-    BTree <String, CBString, Integer, CBInt> tree;
+    BTree <String, Integer> tree;
     Path dir = Paths.get("/tmp/btree");
-    tree = builder.build(CBString.class, CBInt.class, dir, "english");
-    Iterator <KeyValue<CBString,CBInt>> iter = tree.iterator();
+    tree = builder.build(new StringCodec(), new IntCodec(), dir, "english");
+    Iterator <KeyValue<String, Integer>> iter = tree.iterator();
     while(iter.hasNext()){
-      KeyValue <CBString, CBInt> kv = iter.next();
+      KeyValue <String, Integer> kv = iter.next();
       System.out.println(kv.getKey()+": "+kv.getValue());
     }
   }
 
-  static class WordCountIter implements Iterator<KeyValue<CBString, CBInt>> {
+  static class WordCountIter implements Iterator<KeyValue<String,Integer>> {
 
-    StorableInputStream<String, CBString> sis;
-    KeyValue<CBString, CBInt> next = null;
-    CBString nextWord = null;
-    CBString prev = null;
+    CodecInputStream<String> sis;
+    KeyValue<String, Integer> next = null;
+    String nextWord = null;
+    String prev = null;
 
-    public WordCountIter(StorableInputStream<String,CBString> sis) {
+    public WordCountIter(CodecInputStream<String> sis) {
       this.sis = sis;
       next = new KeyValue<>();
       try {
@@ -106,15 +110,15 @@ public class DiscCollections {
       } catch (IOException e) {
         throw new Error("could not read");
       }
-      next.setValue(new CBInt(count));
+      next.setValue(count);
     }
 
     public boolean hasNext() {
       return nextWord != null;
     }
 
-    public KeyValue<CBString, CBInt> next() {
-      KeyValue<CBString, CBInt> tmp = next;
+    public KeyValue<String, Integer> next() {
+      KeyValue<String, Integer> tmp = next;
       getNext();
       return tmp;
     }

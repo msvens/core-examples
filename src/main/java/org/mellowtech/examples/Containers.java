@@ -28,9 +28,10 @@
 package org.mellowtech.examples;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.mellowtech.core.bytestorable.CBInt;
-import org.mellowtech.core.bytestorable.CBMixedList;
+import org.mellowtech.core.codec.*;
 
 /**
  * Date: 2013-04-14
@@ -38,37 +39,40 @@ import org.mellowtech.core.bytestorable.CBMixedList;
  *
  * @author Martin Svensson
  */
-public class ByteStorables {
+public class Containers {
 
   public static void main(String[] args){
     serialize();
     list();
     testContainer1();
-    testContainer2();
     testContainer3();
   }
 
   public static void serialize(){
-    CBInt firstInt = new CBInt(1);
-    ByteBuffer bb = firstInt.to();
+    IntCodec codec = new IntCodec();
+
+    Integer firstInt = 1;
+    ByteBuffer bb = codec.to(firstInt);
     bb.flip();
-    CBInt secondInt = firstInt.from(bb);
-    System.out.println("serialize: "+firstInt.get()+" "+secondInt.get());
+    Integer secondInt = codec.from(bb);
+
+    System.out.println("serialize: "+firstInt+" "+secondInt);
   }
 
   public static void list(){
-    CBMixedList list = new CBMixedList();
+    MixedListCodec codec = new MixedListCodec();
+    List<Object> list = new ArrayList<>();
     list.add(1);
     list.add("a string");
     list.add(new Long(100));
     list.add(true);
 
-    ByteBuffer bb = list.to();
+    ByteBuffer bb = codec.to(list);
     list.clear();
 
     //don't create a new object
     bb.flip();
-    list = list.from(bb);
+    list = codec.from(bb);
     Integer first = (Integer) list.get(0);
     String second = (String) list.get(1);
     Long third = (Long) list.get(2);
@@ -77,24 +81,49 @@ public class ByteStorables {
   }
 
   public static void testContainer1(){
+
+    BCodec<Container1> codec = new BCodec<Container1>(){
+
+      BCodec<String> f2Codec = new StringCodec();
+
+      @Override
+      public int byteSize(Container1 c) {
+        return CodecUtil.byteSize(4 + f2Codec.byteSize(c.f2), true);
+      }
+
+      @Override
+      public int byteSize(ByteBuffer bb) {
+        return CodecUtil.peekSize(bb, true);
+      }
+
+      @Override
+      public Container1 from(ByteBuffer bb) {
+        CodecUtil.getSize(bb, true);
+        int f1 = bb.getInt();
+        String f2 = f2Codec.from(bb);
+        return new Container1(f1,f2);
+      }
+
+      @Override
+      public void to(Container1 c, ByteBuffer bb) {
+        CodecUtil.putSize(4 + f2Codec.byteSize(c.f2), bb, true);
+        bb.putInt(c.f1);
+        f2Codec.to(c.f2, bb);
+      }
+    };
+
     Container1 c1 = new Container1(10,"ten");
-    Container1 c2 = c1.deepCopy();
+    Container1 c2 = codec.deepCopy(c1);
     System.out.println("testContainer1: "+c2.f1+" "+c2.f2);
+
   }
 
-  public static void testContainer2(){
-    Container2 c1 = new Container2(10, "ten");
-    //c1.f1 = 10; c1.f2 = "ten";
-    Container2 c2 = c1.deepCopy();
-    System.out.println("testContainer2: "+ c1.f2+" "+c2.f2);
-  }
 
   public static void testContainer3(){
-    Container3 c1 = new Container3();
-    c1.get().f1 = 10;
-    c1.get().f2 = "ten";
-    Container3 c2 = c1.deepCopy();
-    System.out.println("testContainer3: "+c2.get().f1+" "+c2.get().f2);
+    BCodec<Container3> codec = new RecordCodec<Container3>(Container3.class);
+    Container3 c1 = new Container3(10, "ten");
+    Container3 c2 = codec.deepCopy(c1);
+    System.out.println("testContainer3: "+c2.f1+" "+c2.f2);
   }
 
 

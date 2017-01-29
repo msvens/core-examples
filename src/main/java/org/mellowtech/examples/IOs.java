@@ -36,7 +36,7 @@ import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 
-import org.mellowtech.core.bytestorable.CBString;
+import org.mellowtech.core.codec.StringCodec;
 import org.mellowtech.core.io.Record;
 import org.mellowtech.core.io.RecordFile;
 import org.mellowtech.core.io.RecordFileBuilder;
@@ -59,6 +59,7 @@ public class IOs {
   
   public static void memFile() throws Exception{
 
+    StringCodec codec = new StringCodec();
     //create
     RecordFileBuilder builder = new RecordFileBuilder();
     builder.blockSize(2048).mem().reserve(0).maxBlocks(1024*1024);
@@ -66,21 +67,22 @@ public class IOs {
     System.out.println("free blocks: "+rf.getFreeBlocks());
 
     //insert
-    byte[] b = new CBString("first string").to().array();
-    byte[] b1 = new CBString("second string").to().array();
+    byte[] b = codec.to("first string").array();
+    byte[] b1 = codec.to("second string").array();
     rf.insert(100000, b);
     rf.insert(512, b1);
 
     //get
     b = rf.get(100000);
-    CBString str = new CBString().from(b, 0);
-    System.out.println(str.get());
+    String str = codec.from(b, 0);
+    System.out.println(str);
 
     //iterate
-    CBString tmp = new CBString();
+    String tmp;
     for(Iterator<Record>iter = rf.iterator(); iter.hasNext();){
       Record r = iter.next();
-      System.out.println("record: "+r.record+" "+tmp.from(r.data,0));
+      tmp = codec.from(r.data,0);
+      System.out.println("record: "+r.record+" "+tmp);
     }
 
     //finally close and delete

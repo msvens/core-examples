@@ -40,52 +40,13 @@ import org.mellowtech.core.bytestorable.CBUtil;
  *
  * @author Martin Svensson
  */
-//START SNIPPET: c1-class
-public class Container1 implements BStorable <Container1, Container1> {
+public class Container1 {
 
-  public CBInt f1 = new CBInt();
-  public CBString f2 = new CBString();
+  public int f1;
+  public String f2;
 
-  public Container1(){;}
-
-  public Container1(Integer field1, String field2){
-    f1 = new CBInt(field1);
-    f2 = new CBString(field2);
-  }
-  
-  public Container1(CBInt field1, CBString field2){
-    f1 = field1;
-    f2 = field2;
-  }
-
-  @Override
-  public Container1 from(ByteBuffer bb) {
-    CBUtil.getSize(bb, true); //read past size indicator
-    CBInt tmpInt = f1.from(bb);
-    CBString tmpStr = f2.from(bb);
-    return new Container1(tmpInt, tmpStr);
-  }
-
-  @Override
-  public void to(ByteBuffer bb) {
-    CBUtil.putSize(f1.byteSize()+f2.byteSize(), bb, true);
-    f1.to(bb);
-    f2.to(bb);
-  }
-
-  @Override
-  public int byteSize() {
-    return CBUtil.byteSize(f1.byteSize()+f2.byteSize(), true);
-  }
-
-  @Override
-  public int byteSize(ByteBuffer bb) {
-    return CBUtil.peekSize(bb, true);
-  }
-  
-  @Override
-  public Container1 get() {
-    return this;
+  public Container1(int f1, String f2){
+    this.f1 = f1;
+    this.f2 = f2;
   }
 }
-//END SNIPPET: c1-class

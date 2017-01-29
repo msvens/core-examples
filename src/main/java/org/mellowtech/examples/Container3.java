@@ -28,8 +28,8 @@
 package org.mellowtech.examples;
 
 
-import org.mellowtech.core.bytestorable.*;
-
+import org.mellowtech.core.codec.BField;
+import org.mellowtech.core.codec.BRecord;
 
 /**
  * Date: 2013-04-14
@@ -37,16 +37,12 @@ import org.mellowtech.core.bytestorable.*;
  *
  * @author Martin Svensson
  */
-public class Container3 extends CBRecord <Container3.Record, Container3> {
+public class Container3 implements BRecord {
 
-  static class Record implements AutoRecord {
-	  @BSField(2) public Integer f1;
-	  @BSField(1) public String f2;
-  }
+  @BField(2) public Integer f1;
+  @BField(1) public String f2;
 
-  @Override
-  protected Record newA() {
-	return new Record();
-  }
+  public Container3(){}
+  public Container3(int f1, String f2){this.f1 = f1; this.f2 = f2;}
 
 }
