@@ -1,11 +1,8 @@
 package org.mellowtech.examples;
 
-import org.mellowtech.core.bytestorable.CBString;
-import org.mellowtech.core.bytestorable.io.ScannerInputStream;
-import org.mellowtech.core.bytestorable.io.StorableInputStream;
-import org.mellowtech.core.bytestorable.io.StorableOutputStream;
 import org.mellowtech.core.codec.StringCodec;
 import org.mellowtech.core.codec.io.CodecInputStream;
+import org.mellowtech.core.codec.io.CodecOutputStream;
 import org.mellowtech.core.sort.EDiscBasedSort;
 
 import java.io.BufferedOutputStream;
@@ -32,14 +29,13 @@ public class Sorting {
     InputStream is = new GZIPInputStream(new FileInputStream("/tmp/english.1024MB.gz"));
     Scanner s = new Scanner(is);
     s.useDelimiter(p);
-    CBString tmp;
-    StorableOutputStream sos = new StorableOutputStream(new FileOutputStream("/tmp/english.1024MB.bs"));
+    StringCodec stringCodec = new StringCodec();
+    CodecOutputStream sos = new CodecOutputStream(new FileOutputStream("/tmp/english.1024MB.bs"), stringCodec);
     int i = 0;
     while(s.hasNext()){
       String n = s.next();
       if(n.length() > 1){
-        tmp = new CBString(n);
-        sos.write(tmp);
+        sos.write(n);
         i++;
       }
       if(i % 1000000 == 0)
@@ -55,7 +51,7 @@ public class Sorting {
     System.out.println("esort took: "+ (System.currentTimeMillis() - l) + "ms");
   }
 
-  public static void parseAndSort() throws Exception {
+  /*public static void parseAndSort() throws Exception {
     Pattern p = Pattern.compile("[\\s|\\p{Punct}]+");
     InputStream is = new GZIPInputStream(new FileInputStream("/tmp/english.1024MB.gz"));
     Scanner s = new Scanner(is);
@@ -64,7 +60,7 @@ public class Sorting {
     EDiscBasedSort <String> edb = new EDiscBasedSort <>(new StringCodec(), "/tmp");
     edb.sort(new ScannerInputStream(s,1), os, 1024*1024*160);
     os.close();
-  }
+  }*/
 
   public static void verify() throws Exception {
     CodecInputStream<String> sis = new CodecInputStream<>(new FileInputStream("/tmp/english-sorted.bs"), new StringCodec());

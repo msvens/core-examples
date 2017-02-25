@@ -27,12 +27,6 @@
 
 package org.mellowtech.examples;
 
-import java.nio.ByteBuffer;
-
-import org.mellowtech.core.bytestorable.BStorable;
-import org.mellowtech.core.bytestorable.CBInt;
-import org.mellowtech.core.bytestorable.CBString;
-import org.mellowtech.core.bytestorable.CBUtil;
 
 /**
  * Date: 2013-04-14

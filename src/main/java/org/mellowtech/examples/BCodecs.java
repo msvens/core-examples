@@ -28,9 +28,13 @@
 package org.mellowtech.examples;
 
 
+import org.mellowtech.core.codec.IntCodec;
+import org.mellowtech.core.codec.MixedListCodec;
 import org.mellowtech.core.codec.StringCodec;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -41,10 +45,42 @@ import java.nio.ByteBuffer;
  */
 public class BCodecs {
 
+
+
   public static void main(String[] args){
+    serialize();
+    list();
     compareStrings();
     compareInSameBuffer();
+  }
 
+  public static void serialize(){
+    IntCodec codec = new IntCodec();
+    int first = 1;
+    ByteBuffer bb = codec.to(1);
+    bb.flip();
+    Integer second = codec.from(bb);
+    System.out.println("serialize: "+first+" "+second);
+  }
+
+  public static void list(){
+    MixedListCodec codec = new MixedListCodec();
+    List<Object> list = new ArrayList<>();
+    list.add(1);
+    list.add("a string");
+    list.add(new Long(100));
+    list.add(true);
+
+    ByteBuffer bb = codec.to(list);
+    list.clear();
+
+    bb.flip();
+    list = codec.from(bb);
+    Integer first = (Integer) list.get(0);
+    String second = (String) list.get(1);
+    Long third = (Long) list.get(2);
+    Boolean forth = (Boolean) list.get(3);
+    System.out.println("list: "+first+" "+second+" "+third+" "+forth);
   }
 
   /**

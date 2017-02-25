@@ -1,6 +1,6 @@
 package org.mellowtech.examples.benchmark;
 
-import org.mellowtech.core.bytestorable.CBZString;
+import org.mellowtech.core.codec.ZString;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -31,8 +31,8 @@ public class CompressedStrings {
         buffer.flip();
         totSize += buffer.remaining();
         String str = new String(buffer.array(),0, buffer.remaining(), StandardCharsets.ISO_8859_1);
-        CBZString comp = new CBZString(str);
-        compSize += comp.byteSize();
+        ZString comp = new ZString(str);
+        compSize += comp.getCompressedData().length;
         buffer.clear();
       }
       System.out.println(compSize/(1024*1024)+" "+totSize/(1024*1024));
