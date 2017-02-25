@@ -30,6 +30,7 @@ package org.mellowtech.examples;
 
 import org.mellowtech.core.codec.IntCodec;
 import org.mellowtech.core.codec.MixedListCodec;
+import org.mellowtech.core.codec.RecordCodec;
 import org.mellowtech.core.codec.StringCodec;
 
 import java.nio.ByteBuffer;
@@ -50,6 +51,8 @@ public class BCodecs {
   public static void main(String[] args){
     serialize();
     list();
+    testContainer1();
+    testContainer3();
     compareStrings();
     compareInSameBuffer();
   }
@@ -83,6 +86,20 @@ public class BCodecs {
     System.out.println("list: "+first+" "+second+" "+third+" "+forth);
   }
 
+  public static void testContainer1(){
+    Container1 c1 = new Container1(10,"ten");
+    Container1Codec codec = new Container1Codec();
+    Container1 c2 = codec.deepCopy(c1);
+    System.out.println("testContainer1: "+c2.f1+" "+c2.f2);
+  }
+
+  public static void testContainer3(){
+    Container3 c1 = new Container3(10, "ten");
+    RecordCodec<Container3> codec = new RecordCodec<>(Container3.class);
+    Container3 c2 = codec.deepCopy(c1);
+    System.out.println("testContainer3: "+c2.f1+" "+c2.f2);
+  }
+
   /**
    * Compare two strings on a byte level. StringCodec encodes in UTF8
    */
@@ -90,7 +107,7 @@ public class BCodecs {
     StringCodec codec = new StringCodec();
 	  ByteBuffer str1 = codec.to("a string");
 	  ByteBuffer str2 = codec.to("a string");
-	  System.out.println(codec.byteCompare(0, str1, 0, str2));
+	  System.out.println("compareStrings: "+codec.byteCompare(0, str1, 0, str2));
   }
 
   /**
@@ -101,8 +118,7 @@ public class BCodecs {
     ByteBuffer bb = ByteBuffer.wrap(new byte[codec.byteSize("a string 1")+codec.byteSize("a string")]);
     codec.to("a string 1", bb);
     codec.to("a string", bb);
-    System.out.println(codec.byteCompare(0, codec.byteSize("a string 1"), bb));
-
+    System.out.println("compareInSameBuffer: "+codec.byteCompare(0, codec.byteSize("a string 1"), bb));
   }
   
   

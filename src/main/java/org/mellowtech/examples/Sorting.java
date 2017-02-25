@@ -5,10 +5,7 @@ import org.mellowtech.core.codec.io.CodecInputStream;
 import org.mellowtech.core.codec.io.CodecOutputStream;
 import org.mellowtech.core.sort.EDiscBasedSort;
 
-import java.io.BufferedOutputStream;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
+import java.io.*;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
@@ -19,6 +16,8 @@ import java.util.zip.GZIPInputStream;
 public class Sorting {
 
   public static void main(String[] args) throws Exception{
+    //testPipe();
+    testScannerInput();
     //parse();sort();
     //parseAndSort();
     //verify();
@@ -51,16 +50,16 @@ public class Sorting {
     System.out.println("esort took: "+ (System.currentTimeMillis() - l) + "ms");
   }
 
-  /*public static void parseAndSort() throws Exception {
+  public static void parseAndSort() throws Exception {
     Pattern p = Pattern.compile("[\\s|\\p{Punct}]+");
     InputStream is = new GZIPInputStream(new FileInputStream("/tmp/english.1024MB.gz"));
     Scanner s = new Scanner(is);
     s.useDelimiter(p);
     BufferedOutputStream os = new BufferedOutputStream(new FileOutputStream("/tmp/english-sorted-1.bs"),1024*1024);
     EDiscBasedSort <String> edb = new EDiscBasedSort <>(new StringCodec(), "/tmp");
-    edb.sort(new ScannerInputStream(s,1), os, 1024*1024*160);
+    edb.sort(new ScannerCodecInputStream(s,1), os, 1024*1024*160);
     os.close();
-  }*/
+  }
 
   public static void verify() throws Exception {
     CodecInputStream<String> sis = new CodecInputStream<>(new FileInputStream("/tmp/english-sorted.bs"), new StringCodec());
@@ -73,5 +72,72 @@ public class Sorting {
       prev = next;
     }
   }
+
+  public static void testScannerInput() throws Exception {
+    Pattern p = Pattern.compile("[\\s|\\p{Punct}]+");
+    InputStream is = new GZIPInputStream(new FileInputStream("/tmp/english.1024MB.gz"));
+    Scanner s = new Scanner(is);
+    s.useDelimiter(p);
+    ScannerCodecInputStream scis = new ScannerCodecInputStream(s);
+    CodecInputStream<String> cis = new CodecInputStream<>(scis,new StringCodec());
+    String temp;
+    int i = 0;
+    while((temp = cis.next()) != null){
+      i++;
+      if((i % 10000000) == 0)
+        System.out.println(i);
+    }
+  }
+
+  public static void testPipe() throws Exception {
+    Pattern p = Pattern.compile("[\\s|\\p{Punct}]+");
+    InputStream is = new GZIPInputStream(new FileInputStream("/tmp/english.1024MB.gz"));
+    Scanner s = new Scanner(is);
+    s.useDelimiter(p);
+    PipedOutputStream pos = new PipedOutputStream();
+    PipedInputStream pis = new PipedInputStream(pos);
+    final CodecOutputStream<String> cos = new CodecOutputStream<>(pos, new StringCodec());
+    final CodecInputStream<String> cis = new CodecInputStream<>(pis, new StringCodec());
+
+    Runnable runOutput = new Runnable() {
+      @Override
+      public void run() {
+        while(s.hasNext()){
+          try {
+            cos.write(s.next());
+          } catch (IOException e) {
+              e.printStackTrace();
+              return;
+          }
+        }
+      }
+    };
+
+    Runnable runInput = new Runnable() {
+      @Override
+      public void run() {
+        String next = null;
+        int i = 0;
+        try {
+          while ((next = cis.next()) != null) {
+            i++;
+            if((i % 10000000) == 0)
+              System.out.println(i);
+          }
+        } catch(IOException e){
+          e.printStackTrace();
+          return;
+        }
+      }
+    };
+
+    Thread outputThread = new Thread(runOutput,"outThread");
+    Thread inputThread = new Thread(runInput, "inThread");
+    outputThread.start();
+    inputThread.start();
+
+  }
+
+
 
 }
